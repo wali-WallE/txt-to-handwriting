@@ -347,3 +347,57 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderContributors(FALLBACK_CONTRIBUTORS);
   }
 });
+
+// ==========================================
+// Dark Mode Toggle Logic
+// ==========================================
+
+const darkModeToggle = document.getElementById('dark-mode-toggle');
+const toggleText = darkModeToggle.querySelector('span'); 
+const moonIcon = document.getElementById('moon-icon');
+const sunIcon = document.getElementById('sun-icon');
+
+// Helper function to apply colors
+function applyTheme(theme) {
+    const isDark = theme === 'dark';
+    
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+        toggleText.textContent = 'Light Mode';
+        moonIcon.classList.replace('block', 'hidden');
+        sunIcon.classList.replace('hidden', 'block');
+    } else {
+        document.body.classList.remove('dark-mode');
+        toggleText.textContent = 'Dark Mode';
+        sunIcon.classList.replace('block', 'hidden');
+        moonIcon.classList.replace('hidden', 'block');
+    }
+    
+    // Add Accessibility (ARIA) states for screen readers
+    darkModeToggle.setAttribute('aria-pressed', String(isDark));
+    darkModeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+}
+
+// 1. Check if the user already chose dark mode in a previous visit, else adapt to system preference
+const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+const currentTheme = localStorage.getItem('theme') || (systemPrefersDark ? 'dark' : 'light');
+applyTheme(currentTheme);
+
+// 2. Listen for clicks on the toggle button
+darkModeToggle.addEventListener('click', () => {
+    // Check what the NEW theme should be
+    const newTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+    
+    // Apply it
+    applyTheme(newTheme);
+    
+    // Save it to memory
+    localStorage.setItem('theme', newTheme);
+
+    // Re-draw the canvas so the UI updates instantly
+    if (state.isCanvasGenerated) {
+        renderCanvas();
+    } else {
+        drawBlankCanvas(el.ctx, el.canvas);
+    }
+});

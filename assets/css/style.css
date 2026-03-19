@@ -273,3 +273,111 @@ body {
 .zoom-in {
     animation-name: zoomIn;
 }
+
+#main-desk {
+    background-color: #e8eaed;
+}
+
+/* =========================================
+   🌙 DARK MODE OVERRIDES 
+   ========================================= */
+   
+/* Define Dark Theme Variables */
+body.dark-mode {
+    --dm-bg: #121212;
+    --dm-surface: #1f2937;
+    --dm-surface-2: #374151;
+    --dm-border: #4b5563;
+    --dm-text: #e5e7eb;
+    --dm-text-light: #f3f4f6;
+    --dm-text-muted: #9ca3af;
+    --dm-desk-bg: #111827;
+    --dm-accent: #60a5fa;
+    --dm-accent-bg: #1e3a8a;
+    --dm-accent-text: #bfdbfe;
+
+    /* Paper colors */
+    --dm-paper-bg: #ffffff;
+    --dm-paper-text: #111827;
+    --dm-paper-border: #d1d5db;
+
+    /* 1. Global Background and Text */
+    background-color: var(--dm-bg);
+    color: var(--dm-text);
+}
+
+/* 2. Header and Sidebars */
+body.dark-mode header,
+body.dark-mode aside,
+body.dark-mode .bg-white:not(#textInput, #outputCanvas, #editorToolbar, #headingSelect) {
+    background-color: var(--dm-surface);
+    border-color: var(--dm-surface-2);
+}
+
+/* Keep paper/editor surfaces white for realism */
+body.dark-mode #textInput,
+body.dark-mode #outputCanvas {
+    background-color: var(--dm-paper-bg);
+    color: var(--dm-paper-text);
+    border-color: var(--dm-paper-border);
+}
+
+/* 3. Text Colors */
+body.dark-mode .text-gray-800,
+body.dark-mode .text-gray-900 {
+    color: var(--dm-text-light);
+}
+
+body.dark-mode .text-gray-600:not(#headingSelect),
+body.dark-mode .text-gray-500 {
+    color: var(--dm-text-muted);
+}
+
+/* 4. The Gray Background behind the Canvas */
+body.dark-mode #main-desk {
+    background-color: var(--dm-desk-bg);
+}
+
+/* 5. Left Sidebar: Paper Thumbnails */
+body.dark-mode .paper-thumb {
+    background: var(--dm-surface-2);
+    border-color: transparent;
+}
+
+body.dark-mode .paper-thumb.active {
+    border-color: var(--dm-accent);
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.4);
+}
+
+/* 6. Left Sidebar: Font Thumbnails */
+body.dark-mode .font-thumb {
+    background: var(--dm-surface);
+    border-color: var(--dm-border);
+    color: var(--dm-text);
+}
+
+body.dark-mode .font-thumb:hover {
+    background: var(--dm-surface-2);
+    border-color: var(--dm-accent);
+}
+
+body.dark-mode .font-thumb.active {
+    background: var(--dm-accent-bg);
+    border-color: var(--dm-accent);
+    color: var(--dm-accent-text);
+}
+
+/* 7. Removed Toolbar Overrides to maintain light mode style */
+
+/* 8. Buttons (like the dark mode toggle itself!) */
+body.dark-mode button.bg-white,
+body.dark-mode a.bg-white {
+    background-color: var(--dm-surface-2);
+    border-color: var(--dm-border);
+    color: var(--dm-text);
+}
+
+body.dark-mode button.bg-white:hover,
+body.dark-mode a.bg-white:hover {
+    background-color: var(--dm-border);
+}
