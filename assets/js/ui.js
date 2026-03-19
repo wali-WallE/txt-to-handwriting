@@ -555,3 +555,139 @@ export function updateSelectionUI(el, state, renderCanvas) {
 
   if (state.isCanvasGenerated) renderCanvas();
 }
+
+// ─── Edit Area Modal ────────────────────────────────────────────────
+
+/**
+ * Handle opening, closing, and draggable selection box for the custom Text Area.
+ */
+export function initEditAreaModal(el, state, renderCanvas, updateLayout, drawPaperBackground, bg1Image, syncTextState) {
+  let isDragging = false;
+  let dragType = null; // 'move' or direction e.g., 'nw', 'se', 'w'
+  let dragStartX = 0, dragStartY = 0;
+  let startLeft = 0, startTop = 0, startW = 0, startH = 0;
+
+  // The inner canvas representing the paper
+  const editAreaCanvas = el.editAreaCanvas;
+  const editAreaCtx = editAreaCanvas.getContext('2d');
+  const selectionBox = el.selectionBox;
+  const container = el.editAreaContainer;
+
+  function openEditAreaModal() {
+    el.editAreaModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    // Draw current background
+    const baseFontSize = 24;
+    const baseLineSpacing = baseFontSize * 1.4;
+    drawPaperBackground(editAreaCtx, editAreaCanvas, el.paperTypeSelect.value, baseLineSpacing, bg1Image);
+
+    // Sync box visually to state.pageArea
+    // state.pageArea is in canvas coordinates (0-794, 0-1123)
+    const cw = editAreaCanvas.width;
+    const ch = editAreaCanvas.height;
+
+    selectionBox.style.left = `${(state.pageArea.x / cw) * 100}%`;
+    selectionBox.style.top = `${(state.pageArea.y / ch) * 100}%`;
+    selectionBox.style.width = `${(state.pageArea.w / cw) * 100}%`;
+    selectionBox.style.height = `${(state.pageArea.h / ch) * 100}%`;
+  }
+
+  function closeEditAreaModal() {
+    el.editAreaModal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  el.editAreaBtn.addEventListener('click', openEditAreaModal);
+  el.closeEditArea.addEventListener('click', closeEditAreaModal);
+  el.cancelEditArea.addEventListener('click', closeEditAreaModal);
+  el.editAreaOverlay.addEventListener('click', closeEditAreaModal);
+
+  // Drag / Resize
+  selectionBox.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    isDragging = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+
+    const rect = container.getBoundingClientRect();
+    startLeft = parseFloat(selectionBox.style.left) || 10;
+    startTop = parseFloat(selectionBox.style.top) || 7;
+    startW = parseFloat(selectionBox.style.width) || 80;
+    startH = parseFloat(selectionBox.style.height) || 85;
+
+    // Determine type of drag
+    if (e.target.classList.contains('resize-handle')) {
+      dragType = e.target.dataset.dir;
+    } else {
+      dragType = 'move';
+    }
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+
+    const rect = container.getBoundingClientRect();
+    // Convert mouse movement to percentages
+    const dxPercent = ((e.clientX - dragStartX) / rect.width) * 100;
+    const dyPercent = ((e.clientY - dragStartY) / rect.height) * 100;
+
+    let newL = startLeft, newT = startTop, newW = startW, newH = startH;
+
+    if (dragType === 'move') {
+      newL += dxPercent;
+      newT += dyPercent;
+    } else {
+      if (dragType.includes('n')) { newT += dyPercent; newH -= dyPercent; }
+      if (dragType.includes('s')) { newH += dyPercent; }
+      if (dragType.includes('w')) { newL += dxPercent; newW -= dxPercent; }
+      if (dragType.includes('e')) { newW += dxPercent; }
+    }
+
+    // Constraints logic
+    const MIN_W = 10; const MIN_H = 10;
+    if (newW < MIN_W) { if (dragType.includes('w')) newL = newL - (startW - MIN_W); newW = MIN_W; }
+    if (newH < MIN_H) { if (dragType.includes('n')) newT = newT - (startH - MIN_H); newH = MIN_H; }
+    if (newL < 0) { if (dragType === 'move') newL = 0; else { newW += newL; newL = 0; } }
+    if (newT < 0) { if (dragType === 'move') newT = 0; else { newH += newT; newT = 0; } }
+    if (newL + newW > 100) { if (dragType === 'move') newL = 100 - newW; else newW = 100 - newL; }
+    if (newT + newH > 100) { if (dragType === 'move') newT = 100 - newH; else newH = 100 - newT; }
+
+    selectionBox.style.left = `${newL}%`;
+    selectionBox.style.top = `${newT}%`;
+    selectionBox.style.width = `${newW}%`;
+    selectionBox.style.height = `${newH}%`;
+  });
+
+  window.addEventListener('mouseup', () => {
+    isDragging = false;
+    dragType = null;
+  });
+
+  // Apply Changes
+  el.saveEditArea.addEventListener('click', () => {
+    const l = parseFloat(selectionBox.style.left) / 100;
+    const t = parseFloat(selectionBox.style.top) / 100;
+    const w = parseFloat(selectionBox.style.width) / 100;
+    const h = parseFloat(selectionBox.style.height) / 100;
+
+    const cw = editAreaCanvas.width;
+    const ch = editAreaCanvas.height;
+
+    state.pageArea = {
+      x: l * cw,
+      y: t * ch,
+      w: w * cw,
+      h: h * ch
+    };
+
+    closeEditAreaModal();
+
+    if (state.isCanvasGenerated) {
+      // Full re-sync: rebuild paragraph state, recalculate layout, and render
+      syncTextState();
+      renderCanvas();
+    }
+  });
+}
+

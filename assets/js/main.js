@@ -9,6 +9,8 @@ import { downloadCanvasAsImage } from './utils.js';
 import {
   PAPER_PADDING_LEFT,
   PAPER_PADDING_RIGHT,
+  PAPER_PADDING_TOP,
+  PAPER_PADDING_BOTTOM,
   drawBlankCanvas,
   drawPaperBackground,
   calculateDocumentLayout,
@@ -24,6 +26,7 @@ import {
   positionFloatingToolbar,
   updateSelectionUI,
   initPagination,
+  initEditAreaModal,
 } from './ui.js';
 
 // ─── DOM Element References ─────────────────────────────────────────
@@ -75,6 +78,17 @@ const el = {
   modalOverlay: document.getElementById('modalOverlay'),
   fontUpload: document.getElementById('fontUpload'),
   uploadStatus: document.getElementById('uploadStatus'),
+
+  // Edit Area Modal
+  editAreaBtn: document.getElementById('editAreaBtn'),
+  editAreaModal: document.getElementById('editAreaModal'),
+  closeEditArea: document.getElementById('closeEditArea'),
+  cancelEditArea: document.getElementById('cancelEditArea'),
+  saveEditArea: document.getElementById('saveEditArea'),
+  editAreaOverlay: document.getElementById('editAreaOverlay'),
+  editAreaContainer: document.getElementById('editAreaContainer'),
+  editAreaCanvas: document.getElementById('editAreaCanvas'),
+  selectionBox: document.getElementById('selectionBox'),
 };
 
 el.ctx = el.canvas.getContext('2d');
@@ -92,6 +106,12 @@ const state = {
   isCanvasGenerated: false,
   currentPage: 0,
   totalPages: 1,
+  pageArea: {
+    x: PAPER_PADDING_LEFT,
+    y: PAPER_PADDING_TOP,
+    w: 794 - PAPER_PADDING_LEFT - PAPER_PADDING_RIGHT,
+    h: 1123 - PAPER_PADDING_TOP - PAPER_PADDING_BOTTOM
+  }
 };
 
 // ─── Core Render / Generate Cycle ───────────────────────────────────
@@ -107,10 +127,10 @@ function updateLayout() {
   const fontFamily = `"${el.fontSelect.value}", cursive`;
   el.ctx.font = `${baseFontSize}px ${fontFamily}`; // important for correct measurement
 
-  const maxTextWidth = el.canvas.width - PAPER_PADDING_LEFT - PAPER_PADDING_RIGHT;
+  const maxTextWidth = state.pageArea.w;
 
   state.totalPages = calculateDocumentLayout(
-    el.ctx, el.canvas, state.paragraphsState, fontFamily, maxTextWidth
+    el.ctx, el.canvas, state.paragraphsState, fontFamily, maxTextWidth, state.pageArea
   );
 
   // Ensure currentPage doesn't exceed totalPages if content shrank
@@ -136,7 +156,7 @@ function renderCanvas() {
 
   drawCalculatedPage(
     el.ctx, state.paragraphsState, fontFamily,
-    el.inkColorInput.value, state.selectedParaIndex, state.currentPage
+    el.inkColorInput.value, state.selectedParaIndex, state.currentPage, state.pageArea
   );
 
   updatePaginationUI();
@@ -284,6 +304,7 @@ initSidebar(el, () => {
 initFontModal(el);
 initDragAndDrop(el, state, renderCanvas);
 initPagination(el, state, renderCanvas);
+initEditAreaModal(el, state, renderCanvas, updateLayout, drawPaperBackground, bg1Image, syncTextState);
 
 // ─── Boot ───────────────────────────────────────────────────────────
 
