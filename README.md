@@ -1,3 +1,7 @@
+![GitHub license](https://img.shields.io/github/license/vision39/txt-to-handwriting)
+![GitHub stars](https://img.shields.io/github/stars/vision39/txt-to-handwriting)
+![GitHub forks](https://img.shields.io/github/forks/vision39/txt-to-handwriting)
+
 # Text to Handwriting Converter
 
 A modern, responsive web application that converts your digital text into realistic handwritten notes.
@@ -51,6 +55,12 @@ Simply open `index.html` in your favorite modern web browser to start using the 
 3. **Format Paper**: Switch between "Ruled Notebook" or "Blank Paper" background.
 4. **Position Layout**: Click and drag paragraphs on the canvas on the right side to align them perfectly. Use the floating toolbar to change specific paragraph colors or reset positions.
 5. **Download**: Once satisfied, click the "Download Image" button to save your creation to your device.
+
+## 🤝 Contributing
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md).
+
+## 📄 License
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 ## Support ❤️
 
