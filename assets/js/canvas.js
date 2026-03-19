@@ -149,14 +149,16 @@ export function drawSelectionHighlight(ctx, box) {
  * @param {Array}  paragraphsState
  * @param {string} fontFamily
  * @param {number} maxWidth
+ * @param {object} pageArea - The bounding box {x, y, w, h}
  * @returns {number} totalPages
  */
-export function calculateDocumentLayout(ctx, canvas, paragraphsState, fontFamily, maxWidth) {
+export function calculateDocumentLayout(ctx, canvas, paragraphsState, fontFamily, maxWidth, pageArea) {
   const BASE_FONT_SIZE = HEADING_SIZE_MAP.p;
-  const startX = PAPER_PADDING_LEFT + 10;
-  const MAX_Y = canvas.height - PAPER_PADDING_BOTTOM;
+  // Use the defined safe area, rather than fixed global constants
+  const startX = pageArea.x;
+  const MAX_Y = pageArea.y + pageArea.h;
 
-  let currentVirtualY = PAPER_PADDING_TOP - (BASE_FONT_SIZE * 0.2);
+  let currentVirtualY = pageArea.y - (BASE_FONT_SIZE * 0.2);
   let currentPage = 0;
   let totalPages = 1;
 
@@ -170,7 +172,7 @@ export function calculateDocumentLayout(ctx, canvas, paragraphsState, fontFamily
     if ((!para.text || para.text.length === 0) && para.type === 'text') {
       currentVirtualY += paraLineSpacing;
       if (currentVirtualY > MAX_Y) {
-        currentVirtualY = PAPER_PADDING_TOP;
+        currentVirtualY = pageArea.y;
         currentPage++;
         totalPages = Math.max(totalPages, currentPage + 1);
       }
@@ -191,7 +193,7 @@ export function calculateDocumentLayout(ctx, canvas, paragraphsState, fontFamily
       if (currentVirtualY + paraLineSpacing > MAX_Y) {
         currentPage++;
         totalPages = Math.max(totalPages, currentPage + 1);
-        currentVirtualY = PAPER_PADDING_TOP; // reset to top of new page
+        currentVirtualY = pageArea.y; // reset to top of new page
       }
 
       const lineY = currentVirtualY;
@@ -242,9 +244,10 @@ export function calculateDocumentLayout(ctx, canvas, paragraphsState, fontFamily
  * @param {string} inkColor
  * @param {number} selectedIndex
  * @param {number} targetPageIndex
+ * @param {object} pageArea
  */
-export function drawCalculatedPage(ctx, paragraphsState, fontFamily, inkColor, selectedIndex, targetPageIndex) {
-  const startX = PAPER_PADDING_LEFT + 10;
+export function drawCalculatedPage(ctx, paragraphsState, fontFamily, inkColor, selectedIndex, targetPageIndex, pageArea) {
+  const startX = pageArea.x;
 
   paragraphsState.forEach((para, index) => {
     if (!para.layout) return;
